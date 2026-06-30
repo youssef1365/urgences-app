@@ -3,17 +3,17 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg:       #080c10;
-  --surface:  #0e1318;
-  --surface2: #161c23;
-  --border:   #1e2730;
-  --accent:   #4fc3f7;
-  --green:    #4ade80;
-  --red:      #f87171;
-  --yellow:   #fbbf24;
-  --text:     #e2e8f0;
-  --text2:    #7a8899;
-  --text3:    #3d4f61;
+  --bg:       #f7f8fa;
+  --surface:  #ffffff;
+  --surface2: #f0f2f5;
+  --border:   #e1e5ea;
+  --accent:   #0284c7;
+  --green:    #16a34a;
+  --red:      #dc2626;
+  --yellow:   #ca8a04;
+  --text:     #1a2230;
+  --text2:    #5b6878;
+  --text3:    #9aa5b1;
   --mono:     'IBM Plex Mono', monospace;
   --sans:     'Inter', sans-serif;
 }
