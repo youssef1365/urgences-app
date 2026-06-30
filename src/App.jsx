@@ -131,115 +131,30 @@ function SlideHero() {
   )
 }
 
-// ── SLIDE 1 : Problème — Variables explained ──────────────────────────────────
+// ── SLIDE 1 : Problème ────────────────────────────────────────────────────────
 function SlideProbleme() {
-
   const inputVars = [
-    {
-      sym: "λ",
-      name: "Taux d'arrivée",
-      unit: "patients / heure",
-      color: "var(--red)",
-      nature: "Aléatoire",
-      desc: "Nombre moyen de patients qui arrivent aux urgences par unité de temps. Les arrivées suivent un processus de Poisson — elles sont indépendantes et imprévisibles. Si λ = 6, on attend 6 patients par heure en moyenne, mais la réalité oscille autour de ce chiffre.",
-      example: "λ = 6  →  1 patient toutes les 10 min en moyenne",
-    },
-    {
-      sym: "μ",
-      name: "Taux de service",
-      unit: "soins / heure / médecin",
-      color: "var(--yellow)",
-      nature: "Aléatoire",
-      desc: "Capacité de traitement d'un seul médecin. μ = 4 signifie qu'un médecin peut prendre en charge 4 patients par heure, soit 15 min par patient en moyenne. La durée réelle de chaque soin est aléatoire et suit une loi exponentielle de paramètre μ.",
-      example: "μ = 4  →  E[durée soin] = 1/μ = 15 min",
-    },
-    {
-      sym: "c",
-      name: "Nombre de serveurs",
-      unit: "médecins en poste",
-      color: "var(--accent)",
-      nature: "Décision",
-      desc: "Le nombre de médecins (ou guichets) simultanément disponibles. C'est la variable de décision principale du gestionnaire. Augmenter c réduit l'attente mais augmente les coûts de personnel. Trouver c* optimal est l'objectif du modèle M/M/c.",
-      example: "c = 3  →  3 médecins traitent en parallèle",
-    },
-    {
-      sym: "D",
-      name: "Demande médicale",
-      unit: "unités / jour",
-      color: "var(--green)",
-      nature: "Aléatoire",
-      desc: "Quantité de médicaments, matériels ou ressources consommée chaque jour. Elle dépend du flux de patients N(t), ce qui crée un couplage entre le modèle de file d'attente et le modèle de stock. Une forte affluence entraîne une forte demande.",
-      example: "D ~ Normal(μ_D, σ_D²)",
-    },
+    { sym: "λ", name: "Taux d'arrivée", unit: "patients / heure", color: "var(--red)", nature: "Aléatoire", desc: "Nombre moyen de patients qui arrivent aux urgences par unité de temps. Les arrivées suivent un processus de Poisson — elles sont indépendantes et imprévisibles. Si λ = 6, on attend 6 patients par heure en moyenne, mais la réalité oscille autour de ce chiffre.", example: "λ = 6  →  1 patient toutes les 10 min en moyenne" },
+    { sym: "μ", name: "Taux de service", unit: "soins / heure / médecin", color: "var(--yellow)", nature: "Aléatoire", desc: "Capacité de traitement d'un seul médecin. μ = 4 signifie qu'un médecin peut prendre en charge 4 patients par heure, soit 15 min par patient en moyenne. La durée réelle de chaque soin est aléatoire et suit une loi exponentielle de paramètre μ.", example: "μ = 4  →  E[durée soin] = 1/μ = 15 min" },
+    { sym: "c", name: "Nombre de serveurs", unit: "médecins en poste", color: "var(--accent)", nature: "Décision", desc: "Le nombre de médecins (ou guichets) simultanément disponibles. C'est la variable de décision principale du gestionnaire. Augmenter c réduit l'attente mais augmente les coûts de personnel. Trouver c* optimal est l'objectif du modèle M/M/c.", example: "c = 3  →  3 médecins traitent en parallèle" },
+    { sym: "D", name: "Demande médicale", unit: "unités / jour", color: "var(--green)", nature: "Aléatoire", desc: "Quantité de médicaments, matériels ou ressources consommée chaque jour. Elle dépend du flux de patients N(t), ce qui crée un couplage entre le modèle de file d'attente et le modèle de stock. Une forte affluence entraîne une forte demande.", example: "D ~ Normal(μ_D, σ_D²)" },
   ]
-
   const derivedVars = [
-    {
-      sym: "a = λ/μ",
-      name: "Charge totale offerte",
-      unit: "Erlangs",
-      color: "var(--accent)",
-      desc: "Mesure l'intensité du trafic entrant en Erlangs. C'est le nombre moyen de médecins qui seraient occupés si le système avait une capacité infinie. Si a > c, le système est instable.",
-      example: "a = 6/4 = 1.5 Erlangs",
-    },
-    {
-      sym: "ρ = λ/(c·μ)",
-      name: "Taux d'occupation",
-      unit: "sans unité, ∈ [0, 1[",
-      color: "var(--yellow)",
-      desc: "Fraction du temps pendant laquelle chaque médecin est occupé. Condition de stabilité : ρ < 1. Si ρ = 0.8, les médecins sont occupés 80 % du temps. Plus ρ se rapproche de 1, plus la file explose.",
-      example: "ρ = 6/(3×4) = 0.5  →  50 % d'occupation",
-    },
-    {
-      sym: "C(c, a)",
-      name: "Probabilité d'attente (Erlang C)",
-      unit: "probabilité ∈ [0, 1]",
-      color: "var(--red)",
-      desc: "Probabilité qu'un patient arrivant doive attendre parce que tous les médecins sont occupés. Calculée par la formule d'Erlang C. Si C = 0.3, 30 % des patients attendent avant d'être pris en charge.",
-      example: "C(3, 1.5) ≈ 0.17  →  17 % attendent",
-    },
-    {
-      sym: "E[Wq]",
-      name: "Temps d'attente moyen en file",
-      unit: "minutes",
-      color: "var(--green)",
-      desc: "Durée moyenne qu'un patient passe à attendre avant d'être pris en charge par un médecin (hors durée des soins). Relié à Erlang C par E[Wq] = C(c,a) / (c·μ − λ). Si le système est instable, E[Wq] → ∞.",
-      example: "E[Wq] = 2.5 min",
-    },
-    {
-      sym: "E[W]",
-      name: "Temps de séjour total",
-      unit: "minutes",
-      color: "var(--accent)",
-      desc: "Durée totale passée par un patient dans le système, de son arrivée à sa sortie. E[W] = E[Wq] + 1/μ. C'est la somme du temps d'attente et du temps de soin.",
-      example: "E[W] = E[Wq] + 15 min",
-    },
-    {
-      sym: "E[N]",
-      name: "Nombre moyen de patients",
-      unit: "patients dans le système",
-      color: "var(--yellow)",
-      desc: "Nombre moyen de patients présents à tout instant dans le système (en attente + en soin). Obtenu par la Loi de Little : E[N] = λ · E[W]. Utile pour estimer la capacité physique nécessaire (nombre de lits, salles d'attente).",
-      example: "E[N] = 6 × (E[W]/60)",
-    },
+    { sym: "a = λ/μ", name: "Charge totale offerte", unit: "Erlangs", color: "var(--accent)", desc: "Mesure l'intensité du trafic entrant en Erlangs. C'est le nombre moyen de médecins qui seraient occupés si le système avait une capacité infinie. Si a > c, le système est instable.", example: "a = 6/4 = 1.5 Erlangs" },
+    { sym: "ρ = λ/(c·μ)", name: "Taux d'occupation", unit: "sans unité, ∈ [0, 1[", color: "var(--yellow)", desc: "Fraction du temps pendant laquelle chaque médecin est occupé. Condition de stabilité : ρ < 1. Si ρ = 0.8, les médecins sont occupés 80 % du temps. Plus ρ se rapproche de 1, plus la file explose.", example: "ρ = 6/(3×4) = 0.5  →  50 % d'occupation" },
+    { sym: "C(c, a)", name: "Probabilité d'attente (Erlang C)", unit: "probabilité ∈ [0, 1]", color: "var(--red)", desc: "Probabilité qu'un patient arrivant doive attendre parce que tous les médecins sont occupés. Calculée par la formule d'Erlang C. Si C = 0.3, 30 % des patients attendent avant d'être pris en charge.", example: "C(3, 1.5) ≈ 0.17  →  17 % attendent" },
+    { sym: "E[Wq]", name: "Temps d'attente moyen en file", unit: "minutes", color: "var(--green)", desc: "Durée moyenne qu'un patient passe à attendre avant d'être pris en charge par un médecin (hors durée des soins). Relié à Erlang C par E[Wq] = C(c,a) / (c·μ − λ). Si le système est instable, E[Wq] → ∞.", example: "E[Wq] = 2.5 min" },
+    { sym: "E[W]", name: "Temps de séjour total", unit: "minutes", color: "var(--accent)", desc: "Durée totale passée par un patient dans le système, de son arrivée à sa sortie. E[W] = E[Wq] + 1/μ. C'est la somme du temps d'attente et du temps de soin.", example: "E[W] = E[Wq] + 15 min" },
+    { sym: "E[N]", name: "Nombre moyen de patients", unit: "patients dans le système", color: "var(--yellow)", desc: "Nombre moyen de patients présents à tout instant dans le système (en attente + en soin). Obtenu par la Loi de Little : E[N] = λ · E[W]. Utile pour estimer la capacité physique nécessaire (nombre de lits, salles d'attente).", example: "E[N] = 6 × (E[W]/60)" },
   ]
-
   const [activeInput, setActiveInput] = useState(0)
   const [activeDerived, setActiveDerived] = useState(0)
-
   return (
     <div style={S.slide}>
       <div style={S.eyebrow}>Étape 1 — Comprendre</div>
       <h2 style={S.h2}>Dictionnaire des variables du modèle</h2>
-
-      {/* Flow diagram */}
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 28, flexWrap: "wrap" }}>
-        {[
-          { label: "Patient arrive", sub: "Poisson(λ)", color: "var(--red)" },
-          { label: "Triage", sub: "Priorité aléatoire", color: "var(--yellow)" },
-          { label: "File d'attente", sub: "n patients", color: "var(--accent)" },
-          { label: "Soins médicaux", sub: "c médecins · Exp(μ)", color: "var(--green)" },
-        ].map((a, i, arr) => (
+        {[{ label: "Patient arrive", sub: "Poisson(λ)", color: "var(--red)" }, { label: "Triage", sub: "Priorité aléatoire", color: "var(--yellow)" }, { label: "File d'attente", sub: "n patients", color: "var(--accent)" }, { label: "Soins médicaux", sub: "c médecins · Exp(μ)", color: "var(--green)" }].map((a, i, arr) => (
           <div key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <div style={{ ...S.card, borderColor: a.color, padding: "10px 16px", minWidth: 130 }}>
               <div style={{ fontSize: 12, fontWeight: 600, color: a.color }}>{a.label}</div>
@@ -249,327 +164,106 @@ function SlideProbleme() {
           </div>
         ))}
       </div>
-
       <div style={S.divider} />
-
-      {/* Input / decision variables */}
       <div style={S.h3}>Variables d'entrée et de décision</div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 20 }}>
         {inputVars.map((v, i) => (
-          <div
-            key={v.sym}
-            onClick={() => setActiveInput(i)}
-            style={{
-              ...S.card,
-              cursor: "pointer",
-              borderColor: activeInput === i ? v.color : "var(--border)",
-              borderWidth: activeInput === i ? 2 : 1,
-              transition: "border-color .15s",
-            }}
-          >
+          <div key={v.sym} onClick={() => setActiveInput(i)} style={{ ...S.card, cursor: "pointer", borderColor: activeInput === i ? v.color : "var(--border)", borderWidth: activeInput === i ? 2 : 1, transition: "border-color .15s" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
               <div style={{ fontFamily: "var(--mono)", fontSize: 26, color: v.color, lineHeight: 1 }}>{v.sym}</div>
-              <div style={{
-                fontFamily: "var(--mono)", fontSize: 9, letterSpacing: "0.08em", padding: "2px 7px", borderRadius: 10,
-                background: v.nature === "Aléatoire" ? "rgba(248,113,113,.12)" : "rgba(74,222,128,.12)",
-                color: v.nature === "Aléatoire" ? "var(--red)" : "var(--green)",
-              }}>{v.nature}</div>
+              <div style={{ fontFamily: "var(--mono)", fontSize: 9, letterSpacing: "0.08em", padding: "2px 7px", borderRadius: 10, background: v.nature === "Aléatoire" ? "rgba(248,113,113,.12)" : "rgba(74,222,128,.12)", color: v.nature === "Aléatoire" ? "var(--red)" : "var(--green)" }}>{v.nature}</div>
             </div>
             <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text)", marginBottom: 2 }}>{v.name}</div>
             <div style={{ fontFamily: "var(--mono)", fontSize: 9, color: "var(--text3)" }}>{v.unit}</div>
           </div>
         ))}
       </div>
-
-      {/* Detail panel for selected input var */}
-      <div style={{
-        background: "var(--surface2)",
-        border: `1px solid ${inputVars[activeInput].color}`,
-        borderLeft: `3px solid ${inputVars[activeInput].color}`,
-        borderRadius: "0 8px 8px 0",
-        padding: "16px 20px",
-        marginBottom: 28,
-      }}>
+      <div style={{ background: "var(--surface2)", border: `1px solid ${inputVars[activeInput].color}`, borderLeft: `3px solid ${inputVars[activeInput].color}`, borderRadius: "0 8px 8px 0", padding: "16px 20px", marginBottom: 28 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 10 }}>
-          <div style={{ fontFamily: "var(--mono)", fontSize: 32, color: inputVars[activeInput].color, lineHeight: 1 }}>
-            {inputVars[activeInput].sym}
-          </div>
+          <div style={{ fontFamily: "var(--mono)", fontSize: 32, color: inputVars[activeInput].color, lineHeight: 1 }}>{inputVars[activeInput].sym}</div>
           <div>
             <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text)" }}>{inputVars[activeInput].name}</div>
             <div style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)", marginTop: 2 }}>{inputVars[activeInput].unit}</div>
           </div>
         </div>
-        <div style={{ fontSize: 13, color: "var(--text2)", lineHeight: 1.7, marginBottom: 10 }}>
-          {inputVars[activeInput].desc}
-        </div>
-        <div style={{ fontFamily: "var(--mono)", fontSize: 12, color: inputVars[activeInput].color, background: "rgba(0,0,0,.15)", padding: "6px 12px", borderRadius: 4, display: "inline-block" }}>
-          {inputVars[activeInput].example}
-        </div>
+        <div style={{ fontSize: 13, color: "var(--text2)", lineHeight: 1.7, marginBottom: 10 }}>{inputVars[activeInput].desc}</div>
+        <div style={{ fontFamily: "var(--mono)", fontSize: 12, color: inputVars[activeInput].color, background: "rgba(0,0,0,.15)", padding: "6px 12px", borderRadius: 4, display: "inline-block" }}>{inputVars[activeInput].example}</div>
       </div>
-
-      {/* Derived / output variables */}
       <div style={S.h3}>Variables calculées (résultats du modèle)</div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, marginBottom: 20 }}>
         {derivedVars.map((v, i) => (
-          <div
-            key={v.sym}
-            onClick={() => setActiveDerived(i)}
-            style={{
-              ...S.card,
-              cursor: "pointer",
-              borderColor: activeDerived === i ? v.color : "var(--border)",
-              borderWidth: activeDerived === i ? 2 : 1,
-              transition: "border-color .15s",
-            }}
-          >
+          <div key={v.sym} onClick={() => setActiveDerived(i)} style={{ ...S.card, cursor: "pointer", borderColor: activeDerived === i ? v.color : "var(--border)", borderWidth: activeDerived === i ? 2 : 1, transition: "border-color .15s" }}>
             <div style={{ fontFamily: "var(--mono)", fontSize: 15, color: v.color, marginBottom: 4 }}>{v.sym}</div>
             <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text)", marginBottom: 2 }}>{v.name}</div>
             <div style={{ fontFamily: "var(--mono)", fontSize: 9, color: "var(--text3)" }}>{v.unit}</div>
           </div>
         ))}
       </div>
-
-      {/* Detail panel for selected derived var */}
-      <div style={{
-        background: "var(--surface2)",
-        border: `1px solid ${derivedVars[activeDerived].color}`,
-        borderLeft: `3px solid ${derivedVars[activeDerived].color}`,
-        borderRadius: "0 8px 8px 0",
-        padding: "16px 20px",
-      }}>
+      <div style={{ background: "var(--surface2)", border: `1px solid ${derivedVars[activeDerived].color}`, borderLeft: `3px solid ${derivedVars[activeDerived].color}`, borderRadius: "0 8px 8px 0", padding: "16px 20px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 10 }}>
-          <div style={{ fontFamily: "var(--mono)", fontSize: 22, color: derivedVars[activeDerived].color, lineHeight: 1 }}>
-            {derivedVars[activeDerived].sym}
-          </div>
+          <div style={{ fontFamily: "var(--mono)", fontSize: 22, color: derivedVars[activeDerived].color, lineHeight: 1 }}>{derivedVars[activeDerived].sym}</div>
           <div>
             <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text)" }}>{derivedVars[activeDerived].name}</div>
             <div style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)", marginTop: 2 }}>{derivedVars[activeDerived].unit}</div>
           </div>
         </div>
-        <div style={{ fontSize: 13, color: "var(--text2)", lineHeight: 1.7, marginBottom: 10 }}>
-          {derivedVars[activeDerived].desc}
-        </div>
-        <div style={{ fontFamily: "var(--mono)", fontSize: 12, color: derivedVars[activeDerived].color, background: "rgba(0,0,0,.15)", padding: "6px 12px", borderRadius: 4, display: "inline-block" }}>
-          {derivedVars[activeDerived].example}
-        </div>
+        <div style={{ fontSize: 13, color: "var(--text2)", lineHeight: 1.7, marginBottom: 10 }}>{derivedVars[activeDerived].desc}</div>
+        <div style={{ fontFamily: "var(--mono)", fontSize: 12, color: derivedVars[activeDerived].color, background: "rgba(0,0,0,.15)", padding: "6px 12px", borderRadius: 4, display: "inline-block" }}>{derivedVars[activeDerived].example}</div>
       </div>
     </div>
   )
 }
 
-// ── SLIDE 2 : Modèle — Variables explained in context ─────────────────────────
+// ── SLIDE 2 : Modèle ─────────────────────────────────────────────────────────
 function SlideModele() {
   const [activeSection, setActiveSection] = useState("queue")
-
   const sections = {
     queue: {
-      label: "File M/M/c",
-      color: "var(--accent)",
-      title: "Modèle de file d'attente M/M/c",
+      label: "File M/M/c", color: "var(--accent)", title: "Modèle de file d'attente M/M/c",
       blocks: [
-        {
-          sym: "M",
-          label: "Markovien (arrivées)",
-          formula: "P(N(t)=k) = (λt)ᵏ · e⁻λᵗ / k!",
-          color: "var(--red)",
-          what: "Ce que ça modélise",
-          whatText: "Les arrivées de patients suivent un processus de Poisson. Le premier « M » de M/M/c signifie que les temps inter-arrivées sont exponentiels de paramètre λ.",
-          why: "Pourquoi ce choix",
-          whyText: "La loi exponentielle possède la propriété d'absence de mémoire : la probabilité qu'un patient arrive dans la prochaine minute ne dépend pas du temps écoulé depuis la dernière arrivée. Cela simplifie énormément l'analyse.",
-          vars: [
-            { sym: "λ", desc: "Taux moyen d'arrivée (patients/heure)" },
-            { sym: "t", desc: "Durée de la fenêtre d'observation" },
-            { sym: "k", desc: "Nombre de patients observés" },
-          ],
-        },
-        {
-          sym: "M",
-          label: "Markovien (service)",
-          formula: "S ~ Exp(μ)  →  E[S] = 1/μ",
-          color: "var(--yellow)",
-          what: "Ce que ça modélise",
-          whatText: "La durée de chaque soin est aléatoire et suit une loi exponentielle de taux μ. Le deuxième « M » de M/M/c. Un soin dure 15 min en moyenne, mais peut durer 2 min (blessure légère) ou 2 heures (état critique).",
-          why: "Pourquoi ce choix",
-          whyText: "La loi exponentielle capture bien la forte variabilité des actes médicaux. Elle est aussi memoryless : la durée restante d'un soin ne dépend pas de son avancement, ce qui maintient la propriété de Markov.",
-          vars: [
-            { sym: "μ", desc: "Taux de service d'un médecin (soins/heure)" },
-            { sym: "1/μ", desc: "Durée moyenne d'un soin" },
-            { sym: "S", desc: "Variable aléatoire — durée d'un soin" },
-          ],
-        },
-        {
-          sym: "c",
-          label: "Serveurs parallèles",
-          formula: "c ≥ ⌈a⌉ = ⌈λ/μ⌉  pour la stabilité",
-          color: "var(--accent)",
-          what: "Ce que ça modélise",
-          whatText: "c est le nombre de médecins travaillant en parallèle. Chaque médecin traite les patients indépendamment avec le même taux μ. La capacité totale du système est c · μ.",
-          why: "Comment le choisir",
-          whyText: "c est la variable de décision centrale. Il faut impérativement que c · μ > λ, soit ρ = λ/(c·μ) < 1. En dessous de ce seuil, la file grossit sans limite. Au-dessus, elle se stabilise.",
-          vars: [
-            { sym: "c", desc: "Nombre de médecins actifs (décision)" },
-            { sym: "c·μ", desc: "Taux de service total du système" },
-            { sym: "ρ = λ/(c·μ)", desc: "Taux d'occupation (doit être < 1)" },
-          ],
-        },
+        { sym: "M", label: "Markovien (arrivées)", formula: "P(N(t)=k) = (λt)ᵏ · e⁻λᵗ / k!", color: "var(--red)", what: "Ce que ça modélise", whatText: "Les arrivées de patients suivent un processus de Poisson. Le premier « M » de M/M/c signifie que les temps inter-arrivées sont exponentiels de paramètre λ.", why: "Pourquoi ce choix", whyText: "La loi exponentielle possède la propriété d'absence de mémoire : la probabilité qu'un patient arrive dans la prochaine minute ne dépend pas du temps écoulé depuis la dernière arrivée.", vars: [{ sym: "λ", desc: "Taux moyen d'arrivée (patients/heure)" }, { sym: "t", desc: "Durée de la fenêtre d'observation" }, { sym: "k", desc: "Nombre de patients observés" }] },
+        { sym: "M", label: "Markovien (service)", formula: "S ~ Exp(μ)  →  E[S] = 1/μ", color: "var(--yellow)", what: "Ce que ça modélise", whatText: "La durée de chaque soin est aléatoire et suit une loi exponentielle de taux μ. Un soin dure 15 min en moyenne, mais peut durer 2 min ou 2 heures selon la gravité.", why: "Pourquoi ce choix", whyText: "La loi exponentielle capture bien la forte variabilité des actes médicaux. Elle est aussi memoryless, ce qui maintient la propriété de Markov.", vars: [{ sym: "μ", desc: "Taux de service d'un médecin (soins/heure)" }, { sym: "1/μ", desc: "Durée moyenne d'un soin" }, { sym: "S", desc: "Variable aléatoire — durée d'un soin" }] },
+        { sym: "c", label: "Serveurs parallèles", formula: "c ≥ ⌈a⌉ = ⌈λ/μ⌉  pour la stabilité", color: "var(--accent)", what: "Ce que ça modélise", whatText: "c est le nombre de médecins travaillant en parallèle. Chaque médecin traite les patients indépendamment avec le même taux μ. La capacité totale du système est c · μ.", why: "Comment le choisir", whyText: "c est la variable de décision centrale. Il faut impérativement que ρ = λ/(c·μ) < 1. En dessous de ce seuil, la file grossit sans limite.", vars: [{ sym: "c", desc: "Nombre de médecins actifs (décision)" }, { sym: "c·μ", desc: "Taux de service total du système" }, { sym: "ρ = λ/(c·μ)", desc: "Taux d'occupation (doit être < 1)" }] },
       ],
     },
     erlang: {
-      label: "Formules clés",
-      color: "var(--green)",
-      title: "Les formules analytiques du modèle",
+      label: "Formules clés", color: "var(--green)", title: "Les formules analytiques du modèle",
       blocks: [
-        {
-          sym: "C(c,a)",
-          label: "Formule d'Erlang C",
-          formula: "C(c,a) = [aᶜ/c! · 1/(1−ρ)] / [Σₖ₌₀ᶜ⁻¹ aᵏ/k! + aᶜ/c!·1/(1−ρ)]",
-          color: "var(--red)",
-          what: "Ce que ça calcule",
-          whatText: "La probabilité qu'un patient arrivant trouve tous les médecins occupés et doive attendre. C'est le résultat clé de la théorie des files M/M/c. Toutes les autres métriques en découlent.",
-          why: "Grandeurs nécessaires",
-          whyText: "Il suffit de connaître a = λ/μ (charge en Erlangs) et c (nombre de médecins). Le résultat donne directement la probabilité d'attente, sans simulation.",
-          vars: [
-            { sym: "a = λ/μ", desc: "Charge totale offerte en Erlangs" },
-            { sym: "c", desc: "Nombre de médecins" },
-            { sym: "ρ = a/c", desc: "Taux d'occupation (< 1 requis)" },
-          ],
-        },
-        {
-          sym: "E[Wq]",
-          label: "Attente moyenne en file",
-          formula: "E[Wq] = C(c,a) / (c·μ − λ)",
-          color: "var(--yellow)",
-          what: "Ce que ça calcule",
-          whatText: "Le temps moyen qu'un patient passe dans la salle d'attente avant d'être vu par un médecin. Proportionnel à Erlang C : si C = 0, personne n'attend. Le dénominateur (c·μ − λ) représente la capacité de service excédentaire.",
-          why: "Intuition du dénominateur",
-          whyText: "c·μ − λ est le débit net de traitement. Plus ce débit est grand (beaucoup de médecins, peu d'arrivées), plus l'attente est courte. Quand λ → c·μ, l'attente tend vers l'infini.",
-          vars: [
-            { sym: "C(c,a)", desc: "Probabilité d'attente (Erlang C)" },
-            { sym: "c·μ − λ", desc: "Débit net excédentaire du système" },
-          ],
-        },
-        {
-          sym: "E[N]",
-          label: "Loi de Little",
-          formula: "E[N] = λ · E[W]  où  E[W] = E[Wq] + 1/μ",
-          color: "var(--green)",
-          what: "Ce que ça calcule",
-          whatText: "Le nombre moyen de patients présents dans le système à tout instant. La Loi de Little est universelle : elle s'applique à tout système stable, sans hypothèse sur les lois de probabilité.",
-          why: "Utilité pratique",
-          whyText: "E[N] permet d'estimer le nombre de lits nécessaires. Si E[N] = 4.2, prévoir au minimum 5 places (lits + chaises en attente). C'est un pont direct entre la théorie et la planification physique.",
-          vars: [
-            { sym: "λ", desc: "Taux d'arrivée" },
-            { sym: "E[W]", desc: "Séjour total = attente + soin" },
-            { sym: "E[N]", desc: "Nombre moyen de patients dans le système" },
-          ],
-        },
+        { sym: "C(c,a)", label: "Formule d'Erlang C", formula: "C(c,a) = [aᶜ/c! · 1/(1−ρ)] / [Σₖ₌₀ᶜ⁻¹ aᵏ/k! + aᶜ/c!·1/(1−ρ)]", color: "var(--red)", what: "Ce que ça calcule", whatText: "La probabilité qu'un patient arrivant trouve tous les médecins occupés et doive attendre. C'est le résultat clé de la théorie des files M/M/c.", why: "Grandeurs nécessaires", whyText: "Il suffit de connaître a = λ/μ et c. Le résultat donne directement la probabilité d'attente, sans simulation.", vars: [{ sym: "a = λ/μ", desc: "Charge totale offerte en Erlangs" }, { sym: "c", desc: "Nombre de médecins" }, { sym: "ρ = a/c", desc: "Taux d'occupation (< 1 requis)" }] },
+        { sym: "E[Wq]", label: "Attente moyenne en file", formula: "E[Wq] = C(c,a) / (c·μ − λ)", color: "var(--yellow)", what: "Ce que ça calcule", whatText: "Le temps moyen qu'un patient passe dans la salle d'attente avant d'être vu par un médecin. Proportionnel à Erlang C.", why: "Intuition du dénominateur", whyText: "c·μ − λ est le débit net de traitement. Plus ce débit est grand, plus l'attente est courte. Quand λ → c·μ, l'attente tend vers l'infini.", vars: [{ sym: "C(c,a)", desc: "Probabilité d'attente (Erlang C)" }, { sym: "c·μ − λ", desc: "Débit net excédentaire du système" }] },
+        { sym: "E[N]", label: "Loi de Little", formula: "E[N] = λ · E[W]  où  E[W] = E[Wq] + 1/μ", color: "var(--green)", what: "Ce que ça calcule", whatText: "Le nombre moyen de patients présents dans le système à tout instant. La Loi de Little est universelle : elle s'applique à tout système stable.", why: "Utilité pratique", whyText: "E[N] permet d'estimer le nombre de lits nécessaires. Si E[N] = 4.2, prévoir au minimum 5 places.", vars: [{ sym: "λ", desc: "Taux d'arrivée" }, { sym: "E[W]", desc: "Séjour total = attente + soin" }, { sym: "E[N]", desc: "Nombre moyen de patients dans le système" }] },
       ],
     },
     stock: {
-      label: "Stock (s,Q)",
-      color: "var(--yellow)",
-      title: "Modèle de gestion de stock (s*, Q*)",
+      label: "Stock (s,Q)", color: "var(--yellow)", title: "Modèle de gestion de stock (s*, Q*)",
       blocks: [
-        {
-          sym: "s*",
-          label: "Seuil de réapprovisionnement",
-          formula: "s* = μ_D · L  +  z_α · σ_D · √L",
-          color: "var(--accent)",
-          what: "Ce que ça calcule",
-          whatText: "Le niveau de stock en dessous duquel on déclenche une commande. s* est la somme de la demande attendue pendant le délai de livraison et d'un stock de sécurité qui absorbe les fluctuations aléatoires.",
-          why: "Décomposition du seuil",
-          whyText: "μ_D · L est la demande moyenne pendant L jours de délai — la part systématique. z_α · σ_D · √L est le stock de sécurité — la part qui couvre l'incertitude. z_α dépend du niveau de service cible.",
-          vars: [
-            { sym: "μ_D", desc: "Demande moyenne par jour" },
-            { sym: "L", desc: "Délai de livraison (jours)" },
-            { sym: "σ_D", desc: "Écart-type de la demande journalière" },
-            { sym: "z_α", desc: "Quantile normal au niveau de service α" },
-          ],
-        },
-        {
-          sym: "Q*",
-          label: "Quantité économique de commande",
-          formula: "Q* = √(2 · K · μ_D / h)",
-          color: "var(--yellow)",
-          what: "Ce que ça calcule",
-          whatText: "La quantité optimale à commander à chaque réapprovisionnement. Q* minimise la somme du coût de stockage (croissant avec Q) et du coût de passation de commande (décroissant avec Q).",
-          why: "Le trade-off de la formule",
-          whyText: "Grandes commandes → moins de passages de commande (économie sur K) mais plus de stock à stocker (coût h élevé). Petites commandes → l'inverse. Q* est exactement le point d'équilibre entre ces deux forces.",
-          vars: [
-            { sym: "K", desc: "Coût fixe par commande (€)" },
-            { sym: "μ_D", desc: "Demande moyenne par jour" },
-            { sym: "h", desc: "Coût de stockage par unité par jour (€)" },
-          ],
-        },
-        {
-          sym: "z_α",
-          label: "Quantile du niveau de service",
-          formula: "P(D_L ≤ s*) = α  →  z_α = Φ⁻¹(α)",
-          color: "var(--green)",
-          what: "Ce que ça calcule",
-          whatText: "z_α est le nombre d'écarts-types à ajouter au-dessus de la moyenne pour garantir que la demande ne dépasse le stock que dans (1−α)% des cycles. C'est le levier de maîtrise du risque de rupture.",
-          why: "Exemples concrets",
-          whyText: "α = 95 % → z = 1.65 (5 % de risque de rupture). α = 99 % → z = 2.33 (1 % de risque). Plus α est élevé, plus le stock de sécurité augmente, et plus le coût de détention s'alourdit.",
-          vars: [
-            { sym: "α", desc: "Niveau de service cible (ex. 0.99)" },
-            { sym: "Φ⁻¹", desc: "Fonction quantile de la loi normale standard" },
-            { sym: "D_L", desc: "Demande cumulée sur L jours" },
-          ],
-        },
+        { sym: "s*", label: "Seuil de réapprovisionnement", formula: "s* = μ_D · L  +  z_α · σ_D · √L", color: "var(--accent)", what: "Ce que ça calcule", whatText: "Le niveau de stock en dessous duquel on déclenche une commande. s* est la somme de la demande attendue pendant le délai de livraison et d'un stock de sécurité.", why: "Décomposition du seuil", whyText: "μ_D · L est la part systématique. z_α · σ_D · √L est le stock de sécurité qui couvre l'incertitude. z_α dépend du niveau de service cible.", vars: [{ sym: "μ_D", desc: "Demande moyenne par jour" }, { sym: "L", desc: "Délai de livraison (jours)" }, { sym: "σ_D", desc: "Écart-type de la demande journalière" }, { sym: "z_α", desc: "Quantile normal au niveau de service α" }] },
+        { sym: "Q*", label: "Quantité économique de commande", formula: "Q* = √(2 · K · μ_D / h)", color: "var(--yellow)", what: "Ce que ça calcule", whatText: "La quantité optimale à commander à chaque réapprovisionnement. Q* minimise la somme du coût de stockage et du coût de passation de commande.", why: "Le trade-off", whyText: "Grandes commandes → moins de passations (économie sur K) mais plus de stock (coût h élevé). Q* est exactement le point d'équilibre.", vars: [{ sym: "K", desc: "Coût fixe par commande (€)" }, { sym: "μ_D", desc: "Demande moyenne par jour" }, { sym: "h", desc: "Coût de stockage par unité par jour (€)" }] },
+        { sym: "z_α", label: "Quantile du niveau de service", formula: "P(D_L ≤ s*) = α  →  z_α = Φ⁻¹(α)", color: "var(--green)", what: "Ce que ça calcule", whatText: "z_α est le nombre d'écarts-types à ajouter au-dessus de la moyenne pour garantir que la demande ne dépasse le stock que dans (1−α)% des cycles.", why: "Exemples concrets", whyText: "α = 95 % → z = 1.65 (5 % de risque). α = 99 % → z = 2.33 (1 % de risque). Plus α est élevé, plus le stock de sécurité augmente.", vars: [{ sym: "α", desc: "Niveau de service cible (ex. 0.99)" }, { sym: "Φ⁻¹", desc: "Fonction quantile de la loi normale standard" }, { sym: "D_L", desc: "Demande cumulée sur L jours" }] },
       ],
     },
   }
-
   const sec = sections[activeSection]
-
   return (
     <div style={S.slide}>
       <div style={S.eyebrow}>Étape 2 — Modéliser</div>
       <h2 style={S.h2}>Construction et variables du modèle</h2>
-
-      {/* Section tabs */}
       <div style={{ display: "flex", gap: 10, marginBottom: 24, flexWrap: "wrap" }}>
         {Object.entries(sections).map(([key, s]) => (
-          <div
-            key={key}
-            onClick={() => setActiveSection(key)}
-            style={{
-              fontFamily: "var(--mono)", fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase",
-              padding: "8px 18px", borderRadius: 6, cursor: "pointer",
-              background: activeSection === key ? s.color : "var(--surface)",
-              color: activeSection === key ? "var(--bg)" : "var(--text2)",
-              border: `1px solid ${activeSection === key ? s.color : "var(--border)"}`,
-              transition: "all .15s",
-            }}
-          >
-            {s.label}
-          </div>
+          <div key={key} onClick={() => setActiveSection(key)} style={{ fontFamily: "var(--mono)", fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase", padding: "8px 18px", borderRadius: 6, cursor: "pointer", background: activeSection === key ? s.color : "var(--surface)", color: activeSection === key ? "var(--bg)" : "var(--text2)", border: `1px solid ${activeSection === key ? s.color : "var(--border)"}`, transition: "all .15s" }}>{s.label}</div>
         ))}
       </div>
-
-      <div style={{ fontFamily: "var(--mono)", fontSize: 11, color: sec.color, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 16 }}>
-        {sec.title}
-      </div>
-
-      {/* Variable blocks */}
+      <div style={{ fontFamily: "var(--mono)", fontSize: 11, color: sec.color, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 16 }}>{sec.title}</div>
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         {sec.blocks.map((b, i) => (
           <div key={i} style={{ ...S.card, borderLeft: `3px solid ${b.color}`, borderRadius: "0 8px 8px 0" }}>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
-
-              {/* Left: symbol + formula */}
               <div>
                 <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
                   <div style={{ fontFamily: "var(--mono)", fontSize: 28, color: b.color, lineHeight: 1 }}>{b.sym}</div>
                   <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>{b.label}</div>
                 </div>
-                <div style={{
-                  background: "rgba(0,0,0,.2)", borderRadius: 6, padding: "10px 14px",
-                  fontFamily: "var(--mono)", fontSize: 12, color: b.color, lineHeight: 1.8, marginBottom: 12,
-                }}>
-                  {b.formula}
-                </div>
-                {/* Variables table */}
+                <div style={{ background: "rgba(0,0,0,.2)", borderRadius: 6, padding: "10px 14px", fontFamily: "var(--mono)", fontSize: 12, color: b.color, lineHeight: 1.8, marginBottom: 12 }}>{b.formula}</div>
                 <div style={{ ...S.h3, marginBottom: 8, fontSize: 9 }}>Variables impliquées</div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                   {b.vars.map((v, j) => (
@@ -580,8 +274,6 @@ function SlideModele() {
                   ))}
                 </div>
               </div>
-
-              {/* Right: explanation */}
               <div>
                 <div style={{ fontSize: 10, fontFamily: "var(--mono)", color: "var(--text3)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>{b.what}</div>
                 <div style={{ fontSize: 13, color: "var(--text2)", lineHeight: 1.7, marginBottom: 14 }}>{b.whatText}</div>
@@ -592,30 +284,11 @@ function SlideModele() {
           </div>
         ))}
       </div>
-
       <div style={S.divider} />
-
-      {/* Objective function */}
       <div style={S.h3}>Objectif global — minimiser le coût espéré total</div>
       <div style={S.formulaBox}>
         min E[ α · E[Wq]  +  h · X_t  +  p · max(0, D_t − X_t) ]<br />
-        <span style={{ color: "var(--text2)", fontSize: 11 }}>
-          {"  "}α · E[Wq] = coût du temps d'attente par patient
-          {"  "}|{"  "}h · X_t = coût de stockage par unité<br />
-          {"  "}p · max(…) = coût de pénurie (médicaments manquants)
-        </span>
-      </div>
-      <div style={{ ...S.grid3, marginTop: 16 }}>
-        {[
-          { label: "α", desc: "Coût unitaire de l'attente (€/min/patient)" },
-          { label: "h", desc: "Coût de détention du stock (€/unité/jour)" },
-          { label: "p", desc: "Pénalité de rupture de stock (€/unité manquante)" },
-        ].map(({ label, desc }) => (
-          <div key={label} style={S.card}>
-            <div style={{ fontFamily: "var(--mono)", fontSize: 20, color: "var(--accent)", marginBottom: 6 }}>{label}</div>
-            <div style={{ fontSize: 12, color: "var(--text2)" }}>{desc}</div>
-          </div>
-        ))}
+        <span style={{ color: "var(--text2)", fontSize: 11 }}>{"  "}α · E[Wq] = coût du temps d'attente{"  "}|{"  "}h · X_t = coût de stockage{"  "}|{"  "}p · max(…) = coût de pénurie</span>
       </div>
     </div>
   )
@@ -628,7 +301,6 @@ function SlideFile() {
   const [c, setC] = useState(3)
   const [cw, setCw] = useState(20)
   const [cm, setCm] = useState(100)
-
   const a = lam / mu
   const rho = lam / (c * mu)
   const ec = erlangC(c, a)
@@ -638,9 +310,7 @@ function SlideFile() {
   const N = isFinite(wq) ? lam * (w / 60) : Infinity
   const costW = isFinite(wq) ? wq * cw * lam : Infinity
   const total = isFinite(costW) ? costW + c * cm : Infinity
-
   const rhoClass = rho >= 1 ? "bad" : rho >= 0.8 ? "warn" : "good"
-
   const cMin = Math.max(1, Math.ceil(a))
   let bestC = cMin, bestCost = Infinity
   const rows = []
@@ -652,13 +322,7 @@ function SlideFile() {
     if (costi < bestCost) { bestCost = costi; bestC = ci }
     rows.push({ c: ci, rho: ri, ec: eci, wq: wqi, cost: costi })
   }
-
-  const chartData = rows.map(r => ({
-    c: `c=${r.c}`, wq: isFinite(r.wq) ? +r.wq.toFixed(2) : null,
-    cost: isFinite(r.cost) ? Math.round(r.cost) : null,
-    highlight: r.c === bestC
-  }))
-
+  const chartData = rows.map(r => ({ c: `c=${r.c}`, wq: isFinite(r.wq) ? +r.wq.toFixed(2) : null, cost: isFinite(r.cost) ? Math.round(r.cost) : null }))
   return (
     <div style={S.slide}>
       <div style={S.eyebrow}>Étape 3 — Résoudre · File d'attente</div>
@@ -671,15 +335,8 @@ function SlideFile() {
           <Slider label="c — médecins testés" sub="variable de décision" min={1} max={12} value={c} onChange={setC} />
           <Slider label="Coût attente (€/min/patient)" min={5} max={100} step={5} value={cw} onChange={setCw} />
           <Slider label="Coût médecin (€/garde)" min={50} max={400} step={10} value={cm} onChange={setCm} />
-          <div style={S.formulaBox}>
-            ρ = {lam}/{c}×{mu} = {rho.toFixed(3)}<br />
-            a = λ/μ = {lam}/{mu} = {a.toFixed(2)} Erlangs
-          </div>
-          <div style={{ marginTop: 10 }}>
-            <span style={S.badge(rhoClass)}>
-              {rho >= 1 ? "● INSTABLE ρ ≥ 1" : rho >= 0.8 ? `● ATTENTION ρ=${rho.toFixed(2)}` : `● STABLE ρ=${rho.toFixed(2)}`}
-            </span>
-          </div>
+          <div style={S.formulaBox}>ρ = {lam}/{c}×{mu} = {rho.toFixed(3)}<br />a = λ/μ = {lam}/{mu} = {a.toFixed(2)} Erlangs</div>
+          <div style={{ marginTop: 10 }}><span style={S.badge(rhoClass)}>{rho >= 1 ? "● INSTABLE ρ ≥ 1" : rho >= 0.8 ? `● ATTENTION ρ=${rho.toFixed(2)}` : `● STABLE ρ=${rho.toFixed(2)}`}</span></div>
         </div>
         <div>
           <div style={{ ...S.grid2, marginBottom: 14 }}>
@@ -690,12 +347,7 @@ function SlideFile() {
             <KPI label="E[N] loi de Little" value={rho >= 1 ? "∞" : fmt(N)} sub="patients en système" />
             <KPI label="Coût total" value={rho >= 1 ? "∞" : Math.round(total) + " €"} sub={c === bestC ? "✓ optimal" : `optimal c=${bestC}`} color={c === bestC ? "good" : undefined} />
           </div>
-          <div style={S.interp}>
-            {rho >= 1
-              ? <span>Système <strong style={{ color: "var(--red)" }}>instable</strong>. Il faut au minimum <strong style={{ color: "var(--text)" }}>{Math.ceil(a) + 1} médecins</strong>.</span>
-              : <span>Avec <strong style={{ color: "var(--text)" }}>{c} médecin(s)</strong>, chaque médecin est occupé <strong style={{ color: "var(--text)" }}>{(rho * 100).toFixed(0)}%</strong> du temps. Attente moyenne : <strong style={{ color: "var(--accent)" }}>{fmt(wq)} min</strong>. {(ec * 100).toFixed(0)}% des patients attendent.</span>
-            }
-          </div>
+          <div style={S.interp}>{rho >= 1 ? <span>Système <strong style={{ color: "var(--red)" }}>instable</strong>. Il faut au minimum <strong style={{ color: "var(--text)" }}>{Math.ceil(a) + 1} médecins</strong>.</span> : <span>Avec <strong style={{ color: "var(--text)" }}>{c} médecin(s)</strong>, occupation <strong style={{ color: "var(--text)" }}>{(rho * 100).toFixed(0)}%</strong>. Attente : <strong style={{ color: "var(--accent)" }}>{fmt(wq)} min</strong>. {(ec * 100).toFixed(0)}% des patients attendent.</span>}</div>
         </div>
       </div>
       <div style={S.divider} />
@@ -723,30 +375,20 @@ function SlideStock() {
   const [svc, setSvc] = useState(99)
   const [K, setK] = useState(100)
   const [h, setH] = useState(5)
-
   const z = zFromSvc(svc)
   const ss = Math.round(z * sig * Math.sqrt(L))
   const demL = mud * L
   const s = Math.round(demL + ss)
-
   const safeH = h > 0 ? h : 1
   const Q = Math.max(1, Math.round(Math.sqrt(2 * K * mud / safeH)))
-
   const nOrders = +(365 * mud / Q).toFixed(1)
   const costAnnuel = Math.round(nOrders * K + (Q / 2 + ss) * safeH * 365)
-
   const chartData = []
-  const qStart = Math.max(1, Q - 40)
-  const qEnd = Q + 60
-  for (let qi = qStart; qi <= qEnd; qi += 5) {
+  for (let qi = Math.max(1, Q - 40); qi <= Q + 60; qi += 5) {
     const holding = (qi / 2 + ss) * safeH * 365
     const ordering = (365 * mud / qi) * K
-    const total = holding + ordering
-    if (isFinite(holding) && isFinite(ordering)) {
-      chartData.push({ Q: qi, stockage: Math.round(holding), commande: Math.round(ordering), total: Math.round(total) })
-    }
+    if (isFinite(holding) && isFinite(ordering)) chartData.push({ Q: qi, stockage: Math.round(holding), commande: Math.round(ordering), total: Math.round(holding + ordering) })
   }
-
   return (
     <div style={S.slide}>
       <div style={S.eyebrow}>Étape 3 — Résoudre · Supply Chain</div>
@@ -760,12 +402,7 @@ function SlideStock() {
           <Slider label="Niveau de service (%)" min={80} max={99} value={svc} onChange={setSvc} unit="%" />
           <Slider label="K coût fixe commande (€)" min={10} max={1000} step={10} value={K} onChange={setK} />
           <Slider label="h coût stockage (€/u/jour)" min={1} max={30} value={h} onChange={setH} />
-          <div style={S.formulaBox}>
-            s* = μ_D·L + z_α·σ_D·√L<br />
-            {"   "}= {mud}×{L} + {z.toFixed(2)}×{sig}×√{L} = <strong>{s}</strong><br />
-            Q* = √(2·K·μ_D/h)<br />
-            {"   "}= √(2×{K}×{mud}/{h}) = <strong>{Q}</strong>
-          </div>
+          <div style={S.formulaBox}>s* = μ_D·L + z_α·σ_D·√L<br />{"   "}= {mud}×{L} + {z.toFixed(2)}×{sig}×√{L} = <strong>{s}</strong><br />Q* = √(2·K·μ_D/h)<br />{"   "}= √(2×{K}×{mud}/{h}) = <strong>{Q}</strong></div>
         </div>
         <div>
           <div style={{ ...S.grid2, marginBottom: 14 }}>
@@ -776,31 +413,23 @@ function SlideStock() {
             <KPI label="Commandes/an" value={nOrders} />
             <KPI label="Coût annuel estimé" value={costAnnuel.toLocaleString() + " €"} />
           </div>
-          <div style={S.interp}>
-            Commander <strong style={{ color: "var(--text)" }}>{Q} unités</strong> dès que le stock atteint <strong style={{ color: "var(--accent)" }}>{s} unités</strong>. Le stock de sécurité de <strong style={{ color: "var(--text)" }}>{ss} unités</strong> couvre les aléas du délai. Probabilité de pénurie : <strong style={{ color: "var(--green)" }}>{(100 - svc).toFixed(0)}%</strong>.
-          </div>
+          <div style={S.interp}>Commander <strong style={{ color: "var(--text)" }}>{Q} unités</strong> dès que le stock atteint <strong style={{ color: "var(--accent)" }}>{s} unités</strong>. Stock de sécurité : <strong style={{ color: "var(--text)" }}>{ss} unités</strong>. Probabilité de pénurie : <strong style={{ color: "var(--green)" }}>{(100 - svc).toFixed(0)}%</strong>.</div>
         </div>
       </div>
       <div style={S.divider} />
       <div style={S.h3}>Coût total selon Q — minimum en Q*</div>
-      {chartData.length > 0 ? (
-        <ResponsiveContainer width="100%" height={190}>
-          <LineChart data={chartData} margin={{ top: 4, right: 16, left: 0, bottom: 4 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#1e2730" />
-            <XAxis dataKey="Q" tick={{ fill: "#7a8899", fontSize: 11, fontFamily: "var(--mono)" }} label={{ value: "Q (unités)", position: "insideBottom", offset: -2, fill: "#7a8899", fontSize: 11 }} />
-            <YAxis tick={{ fill: "#7a8899", fontSize: 11, fontFamily: "var(--mono)" }} />
-            <Tooltip contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 6, fontFamily: "var(--mono)", fontSize: 12 }} />
-            <Line type="monotone" dataKey="stockage" name="Stockage (€)" stroke="#fbbf24" strokeWidth={1.5} dot={false} />
-            <Line type="monotone" dataKey="commande" name="Commande (€)" stroke="#f87171" strokeWidth={1.5} dot={false} />
-            <Line type="monotone" dataKey="total" name="Total (€)" stroke="#4fc3f7" strokeWidth={2} dot={false} />
-            <Legend wrapperStyle={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text2)" }} />
-          </LineChart>
-        </ResponsiveContainer>
-      ) : (
-        <div style={{ ...S.card, textAlign: "center", padding: 32, color: "var(--text3)", fontFamily: "var(--mono)", fontSize: 12 }}>
-          Données insuffisantes pour afficher le graphique
-        </div>
-      )}
+      <ResponsiveContainer width="100%" height={190}>
+        <LineChart data={chartData} margin={{ top: 4, right: 16, left: 0, bottom: 4 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#1e2730" />
+          <XAxis dataKey="Q" tick={{ fill: "#7a8899", fontSize: 11, fontFamily: "var(--mono)" }} />
+          <YAxis tick={{ fill: "#7a8899", fontSize: 11, fontFamily: "var(--mono)" }} />
+          <Tooltip contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 6, fontFamily: "var(--mono)", fontSize: 12 }} />
+          <Line type="monotone" dataKey="stockage" name="Stockage (€)" stroke="#fbbf24" strokeWidth={1.5} dot={false} />
+          <Line type="monotone" dataKey="commande" name="Commande (€)" stroke="#f87171" strokeWidth={1.5} dot={false} />
+          <Line type="monotone" dataKey="total" name="Total (€)" stroke="#4fc3f7" strokeWidth={2} dot={false} />
+          <Legend wrapperStyle={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text2)" }} />
+        </LineChart>
+      </ResponsiveContainer>
     </div>
   )
 }
@@ -815,70 +444,98 @@ function SlideSimulation() {
   const [running, setRunning] = useState(false)
 
   const lamRef = useRef(lam)
-  const muRef = useRef(mu)
-  const cRef = useRef(c)
+  const muRef  = useRef(mu)
+  const cRef   = useRef(c)
   const durRef = useRef(dur)
-
   useEffect(() => { lamRef.current = lam }, [lam])
-  useEffect(() => { muRef.current = mu }, [mu])
-  useEffect(() => { cRef.current = c }, [c])
+  useEffect(() => { muRef.current  = mu  }, [mu])
+  useEffect(() => { cRef.current   = c   }, [c])
   useEffect(() => { durRef.current = dur }, [dur])
 
   const runSim = () => {
     if (running) return
     setRunning(true)
     setResult(null)
-
     setTimeout(() => {
       try {
         const _lam = lamRef.current
-        const _mu = muRef.current
-        const _c = cRef.current
+        const _mu  = muRef.current
+        const _c   = cRef.current
         const _dur = durRef.current
 
-        const history = []
-        let queue = 0, busy = 0, totalWait = 0, nServed = 0, totalBusy = 0, lastTime = 0
-        const events = [{ t: expRand(_lam), type: "arrive" }]
-        let eventCount = 0
-        const MAX_EVENTS = 200000
+        // ── Correct event-driven M/M/c simulation ──
+        // State:
+        //   busy      : number of doctors currently serving (0..c)
+        //   queue     : FIFO of patient arrival times waiting for a doctor
+        //   events    : list of {t, type} sorted by time
+        // Key insight: wait = depart_event.t - patient_arrival_time
+        //              calculated at the moment a doctor becomes free (depart event)
 
-        while (events.length > 0 && eventCount < MAX_EVENTS) {
-          eventCount++
+        let busy = 0
+        const queue = []        // arrival times of queued patients (FIFO)
+        let totalWait = 0
+        let nServed = 0
+        let totalBusy = 0
+        let lastTime = 0
+        const history = []
+
+        const events = [{ t: expRand(_lam), type: 'arrive' }]
+        let iter = 0
+        const MAX_ITER = 500000
+
+        while (events.length > 0 && iter < MAX_ITER) {
+          iter++
+          // find min-time event (simple sort — fast enough for this size)
           events.sort((a, b) => a.t - b.t)
           const ev = events.shift()
           if (ev.t > _dur) break
-          const dt = ev.t - lastTime
-          totalBusy += busy * dt
+
+          // accumulate busy-doctor-time since last event
+          totalBusy += busy * (ev.t - lastTime)
           lastTime = ev.t
 
-          if (ev.type === "arrive") {
+          if (ev.type === 'arrive') {
+            // schedule next arrival immediately
+            events.push({ t: ev.t + expRand(_lam), type: 'arrive' })
+
             if (busy < _c) {
+              // doctor free → serve now, wait = 0
               busy++
-              events.push({ t: ev.t + expRand(_mu), type: "depart", wait: 0 })
+              nServed++
+              // totalWait += 0 (no wait)
+              events.push({ t: ev.t + expRand(_mu), type: 'depart' })
             } else {
-              queue++
+              // all busy → join queue with arrival timestamp
+              queue.push(ev.t)
             }
-            if (ev.t < _dur) events.push({ t: ev.t + expRand(_lam), type: "arrive" })
-            if (history.length < 600) history.push({ t: +ev.t.toFixed(2), N: queue + busy, q: queue, b: busy })
+
           } else {
+            // depart: a doctor just freed up
             busy--
-            nServed++
-            totalWait += (ev.wait || 0)
-            if (queue > 0) {
-              queue--
+            if (queue.length > 0) {
+              // pull next patient from queue
+              const arrivalTime = queue.shift()
+              const wait = ev.t - arrivalTime   // real wait in hours
+              totalWait += wait
+              nServed++
               busy++
-              events.push({ t: ev.t + expRand(_mu), type: "depart", wait: 0 })
+              events.push({ t: ev.t + expRand(_mu), type: 'depart' })
             }
-            if (history.length < 600) history.push({ t: +ev.t.toFixed(2), N: queue + busy, q: queue, b: busy })
+          }
+
+          // record snapshot for chart (max 600 points)
+          if (history.length < 600) {
+            history.push({ t: +ev.t.toFixed(2), N: busy + queue.length, q: queue.length, b: busy })
           }
         }
 
-        const avgWq = nServed > 0 ? totalWait / nServed * 60 : 0
-        const occ = _dur > 0 && _c > 0 ? totalBusy / (_dur * _c) * 100 : 0
-        const a = _lam / _mu
-        const rho = _lam / (_c * _mu)
-        const ec = erlangC(_c, a)
-        const wqTh = rho >= 1 ? Infinity : ec / (_c * _mu - _lam) * 60
+        // final metrics
+        const avgWq = nServed > 0 ? (totalWait / nServed) * 60 : 0   // hours → minutes
+        const occ   = _dur > 0 && _c > 0 ? (totalBusy / (_dur * _c)) * 100 : 0
+        const a     = _lam / _mu
+        const rho   = _lam / (_c * _mu)
+        const ec    = erlangC(_c, a)
+        const wqTh  = rho >= 1 ? Infinity : ec / (_c * _mu - _lam) * 60
 
         setResult({ history, avgWq, wqTh, nServed, occ, rho })
       } catch (err) {
@@ -901,9 +558,7 @@ function SlideSimulation() {
           <Slider label="c médecins" min={1} max={10} value={c} onChange={setC} />
           <Slider label="Durée simulation (heures)" min={10} max={500} step={10} value={dur} onChange={setDur} />
           <div style={{ marginTop: 16, display: "flex", gap: 10 }}>
-            <button style={{ ...S.btn, opacity: running ? 0.6 : 1, cursor: running ? "not-allowed" : "pointer" }} onClick={runSim} disabled={running}>
-              {running ? "En cours..." : "▶ Lancer"}
-            </button>
+            <button style={{ ...S.btn, opacity: running ? 0.6 : 1, cursor: running ? "not-allowed" : "pointer" }} onClick={runSim} disabled={running}>{running ? "En cours..." : "▶ Lancer"}</button>
             <button style={{ ...S.btnSec, cursor: "pointer" }} onClick={() => setResult(null)} disabled={running}>Effacer</button>
           </div>
         </div>
@@ -932,17 +587,15 @@ function SlideSimulation() {
             </LineChart>
           </ResponsiveContainer>
           <div style={{ ...S.interp, marginTop: 14 }}>
-            La simulation confirme la théorie : E[Wq] simulé = <strong style={{ color: "var(--accent)" }}>{fmt(result.avgWq)} min</strong> vs théorique = <strong style={{ color: "var(--green)" }}>{isFinite(result.wqTh) ? fmt(result.wqTh) + " min" : "∞"}</strong>. Les deux convergent quand la durée augmente.
+            Simulation validée : E[Wq] simulé = <strong style={{ color: "var(--accent)" }}>{fmt(result.avgWq)} min</strong> vs théorique Erlang C = <strong style={{ color: "var(--green)" }}>{isFinite(result.wqTh) ? fmt(result.wqTh) + " min" : "∞"}</strong>. Les deux valeurs convergent quand la durée augmente.
           </div>
         </>
       )}
-
       {!result && !running && (
         <div style={{ ...S.card, marginTop: 24, textAlign: "center", padding: 40 }}>
           <div style={{ ...S.body, color: "var(--text3)" }}>Lance la simulation pour voir l'évolution du système</div>
         </div>
       )}
-
       {running && (
         <div style={{ ...S.card, marginTop: 24, textAlign: "center", padding: 40 }}>
           <div style={{ ...S.body, color: "var(--accent)", fontFamily: "var(--mono)", fontSize: 12 }}>Simulation en cours...</div>
@@ -960,7 +613,6 @@ function SlideSynthese() {
   const [sig, setSig] = useState(5)
   const [L, setL] = useState(2)
   const [svc, setSvc] = useState(99)
-
   const a = lam / mu
   const cMin = Math.max(1, Math.ceil(a))
   let bestC = cMin, bestCost = Infinity
@@ -975,18 +627,15 @@ function SlideSynthese() {
   const rho = lam / (bestC * mu)
   const ec = erlangC(bestC, a)
   const wq = ec / (bestC * mu - lam) * 60
-
   const z = zFromSvc(svc)
   const ss = Math.round(z * sig * Math.sqrt(L))
   const s = Math.round(mud * L + ss)
   const Q = Math.max(1, Math.round(Math.sqrt(2 * 100 * mud / 5)))
-
   const decisions = [
     { label: "c* médecins", value: bestC, unit: "", interp: `ρ=${rho.toFixed(2)}, E[Wq]=${fmt(wq)} min`, down: "File explose", up: "Budget gaspillé" },
     { label: "s* seuil stock", value: s, unit: " u", interp: `Stock sécu=${ss}u, z=${z.toFixed(2)}`, down: "Ruptures fréquentes", up: "Surstock coûteux" },
     { label: "Q* quantité", value: Q, unit: " u", interp: `${Math.round(365 * mud / Q)} commandes/an`, down: "Trop de commandes", up: "Stock trop élevé" },
   ]
-
   return (
     <div style={S.slide}>
       <div style={S.eyebrow}>Étape 5 — Interpréter</div>
@@ -1010,30 +659,14 @@ function SlideSynthese() {
             <KPI label="E[Wq]" value={fmt(wq) + " min"} color={wq < 3 ? "good" : "warn"} />
             <KPI label="P(pénurie)" value={(100 - svc) + "%"} color="good" />
           </div>
-          <div style={S.interp}>
-            Programmer <strong style={{ color: "var(--text)" }}>{bestC} médecins</strong>, commander <strong style={{ color: "var(--text)" }}>{Q} unités</strong> dès que le stock atteint <strong style={{ color: "var(--accent)" }}>{s} unités</strong>. Le système sera stable (ρ={rho.toFixed(2)}), l'attente sera de <strong style={{ color: "var(--green)" }}>{fmt(wq)} min</strong>, et la probabilité de rupture sera de {(100 - svc).toFixed(0)}%.
-          </div>
+          <div style={S.interp}>Programmer <strong style={{ color: "var(--text)" }}>{bestC} médecins</strong>, commander <strong style={{ color: "var(--text)" }}>{Q} unités</strong> dès que le stock atteint <strong style={{ color: "var(--accent)" }}>{s} unités</strong>. Système stable (ρ={rho.toFixed(2)}), attente <strong style={{ color: "var(--green)" }}>{fmt(wq)} min</strong>, rupture &lt; {(100 - svc).toFixed(0)}%.</div>
         </div>
       </div>
       <div style={S.divider} />
       <div style={S.h3}>Tableau de décision</div>
       <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-        <thead>
-          <tr>{["Décision", "Valeur optimale", "Interprétation", "Si on réduit ↓", "Si on augmente ↑"].map(h => (
-            <th key={h} style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text2)", letterSpacing: "0.08em", textTransform: "uppercase", padding: "8px 12px", textAlign: "left", borderBottom: "1px solid var(--border)", background: "var(--surface)" }}>{h}</th>
-          ))}</tr>
-        </thead>
-        <tbody>
-          {decisions.map(d => (
-            <tr key={d.label} style={{ borderBottom: "1px solid var(--border)" }}>
-              <td style={{ padding: "10px 12px", fontFamily: "var(--mono)", fontSize: 12, color: "var(--text2)" }}>{d.label}</td>
-              <td style={{ padding: "10px 12px", fontFamily: "var(--mono)", fontSize: 14, color: "var(--green)", fontWeight: 600 }}>{d.value}{d.unit}</td>
-              <td style={{ padding: "10px 12px", color: "var(--text2)", fontSize: 12 }}>{d.interp}</td>
-              <td style={{ padding: "10px 12px", color: "var(--red)", fontSize: 12 }}>{d.down}</td>
-              <td style={{ padding: "10px 12px", color: "var(--yellow)", fontSize: 12 }}>{d.up}</td>
-            </tr>
-          ))}
-        </tbody>
+        <thead><tr>{["Décision", "Valeur optimale", "Interprétation", "Si on réduit ↓", "Si on augmente ↑"].map(h => (<th key={h} style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text2)", letterSpacing: "0.08em", textTransform: "uppercase", padding: "8px 12px", textAlign: "left", borderBottom: "1px solid var(--border)", background: "var(--surface)" }}>{h}</th>))}</tr></thead>
+        <tbody>{decisions.map(d => (<tr key={d.label} style={{ borderBottom: "1px solid var(--border)" }}><td style={{ padding: "10px 12px", fontFamily: "var(--mono)", fontSize: 12, color: "var(--text2)" }}>{d.label}</td><td style={{ padding: "10px 12px", fontFamily: "var(--mono)", fontSize: 14, color: "var(--green)", fontWeight: 600 }}>{d.value}{d.unit}</td><td style={{ padding: "10px 12px", color: "var(--text2)", fontSize: 12 }}>{d.interp}</td><td style={{ padding: "10px 12px", color: "var(--red)", fontSize: 12 }}>{d.down}</td><td style={{ padding: "10px 12px", color: "var(--yellow)", fontSize: 12 }}>{d.up}</td></tr>))}</tbody>
       </table>
     </div>
   )
@@ -1059,41 +692,19 @@ function SlideLimites() {
       <h2 style={S.h2}>Limites du modèle et extensions</h2>
       <div style={S.h3}>Hypothèses et ce qu'elles cachent</div>
       <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, marginBottom: 28 }}>
-        <thead>
-          <tr>{["Hypothèse M/M/c", "Réalité", "Extension possible"].map(h => (
-            <th key={h} style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text2)", letterSpacing: "0.08em", textTransform: "uppercase", padding: "8px 12px", textAlign: "left", borderBottom: "1px solid var(--border)", background: "var(--surface)" }}>{h}</th>
-          ))}</tr>
-        </thead>
-        <tbody>
-          {limites.map(l => (
-            <tr key={l.hyp} style={{ borderBottom: "1px solid var(--border)" }}>
-              <td style={{ padding: "10px 12px", fontFamily: "var(--mono)", fontSize: 12, color: "var(--yellow)" }}>{l.hyp}</td>
-              <td style={{ padding: "10px 12px", color: "var(--text2)", fontSize: 12 }}>{l.realite}</td>
-              <td style={{ padding: "10px 12px", color: "var(--accent)", fontSize: 12 }}>{l.solution}</td>
-            </tr>
-          ))}
-        </tbody>
+        <thead><tr>{["Hypothèse M/M/c", "Réalité", "Extension possible"].map(h => (<th key={h} style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text2)", letterSpacing: "0.08em", textTransform: "uppercase", padding: "8px 12px", textAlign: "left", borderBottom: "1px solid var(--border)", background: "var(--surface)" }}>{h}</th>))}</tr></thead>
+        <tbody>{limites.map(l => (<tr key={l.hyp} style={{ borderBottom: "1px solid var(--border)" }}><td style={{ padding: "10px 12px", fontFamily: "var(--mono)", fontSize: 12, color: "var(--yellow)" }}>{l.hyp}</td><td style={{ padding: "10px 12px", color: "var(--text2)", fontSize: 12 }}>{l.realite}</td><td style={{ padding: "10px 12px", color: "var(--accent)", fontSize: 12 }}>{l.solution}</td></tr>))}</tbody>
       </table>
       <div style={S.h3}>Extensions naturelles</div>
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        {extensions.map(([t, d]) => (
-          <div key={t} style={{ ...S.card, display: "flex", gap: 16, alignItems: "flex-start" }}>
-            <div style={{ width: 3, height: 36, background: "var(--accent)", borderRadius: 2, flexShrink: 0, marginTop: 2 }} />
-            <div>
-              <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 3, color: "var(--text)" }}>{t}</div>
-              <div style={{ ...S.body, fontSize: 13 }}>{d}</div>
-            </div>
-          </div>
-        ))}
+        {extensions.map(([t, d]) => (<div key={t} style={{ ...S.card, display: "flex", gap: 16, alignItems: "flex-start" }}><div style={{ width: 3, height: 36, background: "var(--accent)", borderRadius: 2, flexShrink: 0, marginTop: 2 }} /><div><div style={{ fontSize: 14, fontWeight: 500, marginBottom: 3, color: "var(--text)" }}>{t}</div><div style={{ ...S.body, fontSize: 13 }}>{d}</div></div></div>))}
       </div>
-      <div style={{ ...S.interp, marginTop: 24 }}>
-        Le modèle M/M/c n'est pas un aboutissement — c'est un <strong style={{ color: "var(--text)" }}>point de départ rigoureux</strong>. Ses formules exactes permettent de valider les simulations, qui elles n'ont besoin d'aucune hypothèse paramétrique.
-      </div>
+      <div style={{ ...S.interp, marginTop: 24 }}>Le modèle M/M/c n'est pas un aboutissement — c'est un <strong style={{ color: "var(--text)" }}>point de départ rigoureux</strong>. Ses formules exactes permettent de valider les simulations, qui elles n'ont besoin d'aucune hypothèse paramétrique.</div>
     </div>
   )
 }
 
-// ── ROOT APP ──────────────────────────────────────────────────────────────────
+// ── ROOT ──────────────────────────────────────────────────────────────────────
 const SLIDES = [
   { id: "intro",    label: "Introduction", component: SlideHero },
   { id: "probleme", label: "Problème",     component: SlideProbleme },
@@ -1108,14 +719,11 @@ const SLIDES = [
 export default function App() {
   const [active, setActive] = useState("intro")
   const Slide = SLIDES.find(s => s.id === active)?.component || SlideHero
-
   return (
     <div style={S.page}>
       <nav style={S.nav}>
         <div style={S.navBrand}>M/M/c · Urgences</div>
-        {SLIDES.map(s => (
-          <div key={s.id} style={S.navTab(active === s.id)} onClick={() => setActive(s.id)}>{s.label}</div>
-        ))}
+        {SLIDES.map(s => (<div key={s.id} style={S.navTab(active === s.id)} onClick={() => setActive(s.id)}>{s.label}</div>))}
       </nav>
       <Slide />
     </div>
