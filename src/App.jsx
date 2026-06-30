@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend } from "recharts"
 
-// ── helpers ──────────────────────────────────────────────────────────────────
+
 function factorial(n) {
   if (n > 20) return Infinity
   let f = 1
@@ -100,7 +100,7 @@ function KPI({ label, value, sub, color }) {
 function SlideHero() {
   return (
     <div style={{ ...S.slideNarrow, display: "flex", flexDirection: "column", justifyContent: "center", minHeight: "calc(100vh - 48px)" }}>
-      <div style={S.eyebrow}>Recherche Opérationnelle · Systèmes Stochastiques</div>
+      <div style={S.eyebrow}>Systèmes Stochastiques</div>
       <h1 style={{ ...S.h1, fontSize: 44, marginBottom: 20 }}>
         Gestion des Urgences<br />
         <span style={{ color: "var(--accent)" }}>sous Incertitude</span>
